@@ -39,7 +39,7 @@ namespace UnityCliConnector
             return ResolveParsedPath(path, new[] { prefabRoot });
         }
 
-        static GameObject ResolveParsedPath(GameObjectPath path, IEnumerable<GameObject> startingNodes)
+        internal static GameObject ResolveParsedPath(GameObjectPath path, IEnumerable<GameObject> startingNodes)
         {
             IEnumerable<GameObject> current = startingNodes;
             GameObject resolved = null;
