@@ -99,6 +99,10 @@ func Execute() error {
 		resp, err = testCmd(subArgs, testSend, inst.Port)
 	case "ui":
 		resp, err = uiCmd(subArgs, send)
+	case "scene":
+		resp, err = sceneCmd(subArgs, send)
+	case "gameobject":
+		resp, err = gameObjectCmd(subArgs, send)
 	case "exec":
 		subArgs = readStdinIfPiped(subArgs)
 		var params map[string]interface{}
