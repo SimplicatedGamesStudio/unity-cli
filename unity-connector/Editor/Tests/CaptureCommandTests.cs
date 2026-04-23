@@ -162,6 +162,53 @@ namespace UnityCliConnector.EditorTests
             }
         }
 
+        [Test]
+        public void CaptureSceneObject_RestoresHiddenSiblings()
+        {
+            var rootName = "SceneRoot_" + System.Guid.NewGuid().ToString("N");
+            var outputPath = "Screenshots/test-scene-capture.png";
+            var root = new GameObject(rootName);
+            var target = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var sibling = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            var cameraObject = new GameObject("MainCamera");
+            string capturedPath = null;
+
+            try
+            {
+                target.name = "Target";
+                sibling.name = "Sibling";
+                target.transform.SetParent(root.transform);
+                sibling.transform.SetParent(root.transform);
+                target.transform.position = new Vector3(-1f, 0f, 0f);
+                sibling.transform.position = new Vector3(1f, 0f, 0f);
+
+                cameraObject.tag = "MainCamera";
+                var camera = cameraObject.AddComponent<Camera>();
+                camera.transform.position = new Vector3(0f, 0f, -10f);
+                camera.transform.LookAt(target.transform.position);
+
+                var result = (SuccessResponse)CaptureSceneObject.HandleCommand(new JObject
+                {
+                    ["path"] = rootName + "/Target[0]",
+                    ["output_path"] = outputPath,
+                    ["width"] = 512,
+                    ["height"] = 512,
+                });
+
+                var data = JObject.FromObject(result.data);
+                capturedPath = data["path"]?.ToString();
+                Assert.That(File.Exists(capturedPath), Is.True);
+                Assert.That(sibling.GetComponent<Renderer>().enabled, Is.True);
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(cameraObject);
+                if (!string.IsNullOrEmpty(capturedPath) && File.Exists(capturedPath))
+                    File.Delete(capturedPath);
+            }
+        }
+
         static GameObject CreateCanvasRoot(string name, RenderMode renderMode)
         {
             var root = new GameObject(name, typeof(RectTransform), typeof(Canvas));
