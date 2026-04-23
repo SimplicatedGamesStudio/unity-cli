@@ -210,33 +210,56 @@ namespace UnityCliConnector.EditorTests
         }
 
         [Test]
-        public void CaptureSceneObject_PreservesAncestorCanvas()
+        public void CaptureSceneObject_CapturesUiOnlyTargetSubtree()
         {
             var rootName = "CanvasRoot_" + System.Guid.NewGuid().ToString("N");
-            var canvasRoot = CreateCanvasRoot(rootName, RenderMode.ScreenSpaceCamera);
-            var child = new GameObject("Target", typeof(RectTransform), typeof(Image));
-            child.transform.SetParent(canvasRoot.transform, false);
-            child.GetComponent<Image>().color = Color.red;
-            var cameraObject = new GameObject("MainCamera");
+            var outputPath = "Screenshots/test-scene-capture-ui-subtree.png";
+            var canvasRoot = CreateCanvasRoot(rootName, RenderMode.ScreenSpaceOverlay);
+            var target = new GameObject("Target", typeof(RectTransform));
+            var targetImage = new GameObject("Chip", typeof(RectTransform), typeof(Image));
+            Texture2D capturedTexture = null;
+            string capturedPath = null;
 
             try
             {
-                cameraObject.tag = "MainCamera";
-                var camera = cameraObject.AddComponent<Camera>();
-                canvasRoot.GetComponent<Canvas>().worldCamera = camera;
+                AddFullscreenImage(canvasRoot.transform, Color.green);
+                target.transform.SetParent(canvasRoot.transform, false);
+                targetImage.transform.SetParent(target.transform, false);
 
-                var result = CaptureSceneObject.HandleCommand(new JObject
+                var rectTransform = targetImage.GetComponent<RectTransform>();
+                rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+                rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+                rectTransform.pivot = new Vector2(0.5f, 0.5f);
+                rectTransform.sizeDelta = new Vector2(128f, 128f);
+                rectTransform.anchoredPosition = Vector2.zero;
+                targetImage.GetComponent<Image>().color = Color.red;
+
+                var result = (SuccessResponse)CaptureSceneObject.HandleCommand(new JObject
                 {
-                    ["path"] = rootName + "/Target"
+                    ["path"] = rootName + "/Target",
+                    ["output_path"] = outputPath,
+                    ["width"] = 512,
+                    ["height"] = 512,
                 });
 
-                Assert.That(result, Is.TypeOf<SuccessResponse>());
+                var data = JObject.FromObject(result.data);
+                capturedPath = data["path"]?.ToString();
+                Assert.That(File.Exists(capturedPath), Is.True);
+
+                capturedTexture = new Texture2D(2, 2, TextureFormat.RGB24, false);
+                capturedTexture.LoadImage(File.ReadAllBytes(capturedPath));
+                var pixel = capturedTexture.GetPixel(capturedTexture.width / 2, capturedTexture.height / 2);
+                Assert.That(pixel.r, Is.GreaterThan(0.5f));
+                Assert.That(pixel.g, Is.LessThan(0.25f));
                 Assert.That(canvasRoot.GetComponent<Canvas>().enabled, Is.True);
             }
             finally
             {
                 Object.DestroyImmediate(canvasRoot);
-                Object.DestroyImmediate(cameraObject);
+                if (capturedTexture)
+                    Object.DestroyImmediate(capturedTexture);
+                if (!string.IsNullOrEmpty(capturedPath) && File.Exists(capturedPath))
+                    File.Delete(capturedPath);
             }
         }
 
