@@ -1,6 +1,10 @@
 package cmd
 
 import (
+	"bytes"
+	"io"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/SimplicatedGamesStudio/unity-cli/internal/client"
@@ -121,6 +125,45 @@ func TestBuildParams_BaseParams(t *testing.T) {
 	}
 	if p["depth"] != 5 {
 		t.Errorf("expected depth=5, got %v", p["depth"])
+	}
+}
+
+func captureOutput(t *testing.T, fn func()) string {
+	t.Helper()
+
+	oldStdout := os.Stdout
+	readPipe, writePipe, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("os.Pipe: %v", err)
+	}
+
+	os.Stdout = writePipe
+	defer func() {
+		os.Stdout = oldStdout
+	}()
+
+	fn()
+
+	_ = writePipe.Close()
+	var buffer bytes.Buffer
+	if _, err := io.Copy(&buffer, readPipe); err != nil {
+		t.Fatalf("io.Copy: %v", err)
+	}
+
+	return buffer.String()
+}
+
+func TestPrintTopicHelp_UI(t *testing.T) {
+	output := captureOutput(t, func() { printTopicHelp("ui") })
+	if !strings.Contains(output, "capture-canvas") {
+		t.Fatalf("expected ui help to mention capture-canvas, got %q", output)
+	}
+}
+
+func TestPrintTopicHelp_GameObject(t *testing.T) {
+	output := captureOutput(t, func() { printTopicHelp("gameobject") })
+	if !strings.Contains(output, "gameobject info") {
+		t.Fatalf("expected gameobject help to mention info command, got %q", output)
 	}
 }
 

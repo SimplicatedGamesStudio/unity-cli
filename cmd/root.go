@@ -317,6 +317,16 @@ Screenshot:
   screenshot --view game              Capture game view
   screenshot --output_path <path>     Custom output path
 
+UI:
+  ui capture-canvas --path <exact-path> [--output_path <path>] [--width N] [--height N]
+
+Scene:
+  scene capture-object --path <exact-path> [--output_path <path>] [--width N] [--height N]
+
+GameObject:
+  gameobject info --path <exact-path> [--prefab <asset-path>]
+  gameobject list [--path <exact-path>] [--prefab <asset-path>] [--depth N|--recursive]
+
 Reserialize:
   reserialize [path...]          Force reserialize (no args = entire project)
 
@@ -468,8 +478,68 @@ Options:
 Examples:
   unity-cli screenshot
   unity-cli screenshot --view game
-  unity-cli screenshot --view scene --width 3840 --height 2160
-  unity-cli screenshot --output_path captures/my_scene.png
+ unity-cli screenshot --view scene --width 3840 --height 2160
+ unity-cli screenshot --output_path captures/my_scene.png
+`)
+	case "ui":
+		fmt.Print(`Usage: unity-cli ui capture-canvas --path <exact-path> [options]
+
+Capture an exact Canvas object from the loaded scene.
+
+Options:
+  --path <exact-path>         Exact scene path to a Canvas object
+  --output_path <path>        Output path, absolute or relative to project root
+  --width <N>                 Image width in pixels (default: 1920)
+  --height <N>                Image height in pixels (default: 1080)
+
+Path rules:
+  - Exact paths only
+  - Duplicate siblings require [index]
+  - Use SceneName::Path when multiple scenes are loaded
+
+Examples:
+  unity-cli ui capture-canvas --path HUD/MainCanvas[0]
+  unity-cli ui capture-canvas --path BattleScene::HUD/MainCanvas[0] --width 2560 --height 1440
+`)
+	case "scene":
+		fmt.Print(`Usage: unity-cli scene capture-object --path <exact-path> [options]
+
+Capture an exact scene object subtree while hiding unrelated content.
+
+Options:
+  --path <exact-path>         Exact scene path to the target object
+  --output_path <path>        Output path, absolute or relative to project root
+  --width <N>                 Image width in pixels (default: 1920)
+  --height <N>                Image height in pixels (default: 1080)
+
+Path rules:
+  - Exact paths only
+  - Duplicate siblings require [index]
+  - Use SceneName::Path when multiple scenes are loaded
+
+Examples:
+  unity-cli scene capture-object --path Units/BossRoot[0]
+  unity-cli scene capture-object --path BattleScene::Units/BossRoot[0] --output_path captures/boss.png
+`)
+	case "gameobject":
+		fmt.Print(`Usage: unity-cli gameobject <info|list> [options]
+
+Inspect exact scene or prefab objects.
+
+Subcommands:
+  info --path <exact-path> [--prefab <asset-path>]
+  list [--path <exact-path>] [--prefab <asset-path>] [--depth <N>|--recursive]
+
+Path rules:
+  - Exact paths only
+  - Duplicate siblings require [index]
+  - Use SceneName::Path when multiple scenes are loaded
+  - Prefab support is available for info and list
+
+Examples:
+  unity-cli gameobject info --path HUD/MainCanvas[0]/Panel[1]
+  unity-cli gameobject list --path HUD/MainCanvas[0] --depth 2
+  unity-cli gameobject info --prefab Assets/Prefabs/UI/MainHUD.prefab --path Root/MainCanvas[0]
 `)
 	case "reserialize":
 		fmt.Print(`Usage: unity-cli reserialize [path...]

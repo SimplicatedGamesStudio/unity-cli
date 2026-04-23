@@ -154,6 +154,9 @@ Before compiling or reloading, the Connector records the state (`compiling`, `re
 | `menu` | Execute any Unity menu item by path |
 | `reserialize` | Re-serialize assets through Unity's serializer |
 | `screenshot` | Capture scene/game view as PNG |
+| `ui` | Capture an exact Canvas by hierarchy path |
+| `scene` | Capture an exact scene object subtree |
+| `gameobject` | Inspect or list exact scene/prefab objects |
 | `profiler` | Read profiler hierarchy, control recording |
 | `list` | Show all available tools with parameter schemas |
 | `status` | Show Unity Editor connection state |
@@ -250,6 +253,25 @@ unity-cli reserialize Assets/Materials/Character.mat
 ```
 
 This is what makes text-based asset editing safe. Without it, a single misplaced YAML field can break a prefab with no visible error until runtime. With it, **AI agents can confidently modify any Unity asset through plain text** — add components to prefabs, adjust scene hierarchies, change material properties — and know the result will load correctly.
+
+### Exact UI, Scene, and GameObject Commands
+
+These commands are for exact-path workflows where you want deterministic capture or structured inspection instead of ad-hoc `exec` code.
+
+```bash
+unity-cli ui capture-canvas --path HUD/MainCanvas[0]
+unity-cli scene capture-object --path Units/BossRoot[0]
+unity-cli gameobject info --path HUD/MainCanvas[0]/Panel[1]
+unity-cli gameobject list --path HUD/MainCanvas[0] --depth 2
+unity-cli gameobject info --prefab Assets/Prefabs/UI/MainHUD.prefab --path Root/MainCanvas[0]
+```
+
+Path rules:
+
+- exact paths only
+- duplicate siblings require `[index]`
+- scene-qualified paths are required when multiple scenes are loaded
+- prefab support is available for `gameobject info` and `gameobject list`
 
 ### Profiler
 
@@ -353,6 +375,9 @@ Use `--help` on any command for detailed usage:
 
 ```bash
 unity-cli editor --help
+unity-cli ui --help
+unity-cli scene --help
+unity-cli gameobject --help
 unity-cli exec --help
 unity-cli profiler --help
 ```

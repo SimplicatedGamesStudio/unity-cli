@@ -154,6 +154,9 @@ Unity 커넥터의 동작:
 | `menu` | Unity 메뉴 아이템을 경로로 실행 |
 | `reserialize` | Unity 시리얼라이저를 통해 에셋 재직렬화 |
 | `screenshot` | Scene/Game 뷰를 PNG로 캡처 |
+| `ui` | 정확한 계층 경로로 Canvas 캡처 |
+| `scene` | 정확한 씬 오브젝트 서브트리 캡처 |
+| `gameobject` | 정확한 씬/프리팹 오브젝트 정보 조회 및 리스트 |
 | `profiler` | 프로파일러 하이어라키 읽기, 녹화 제어 |
 | `list` | 사용 가능한 모든 도구와 파라미터 스키마 표시 |
 | `status` | Unity Editor 연결 상태 확인 |
@@ -250,6 +253,25 @@ unity-cli reserialize Assets/Materials/Character.mat
 ```
 
 이것이 텍스트 기반 에셋 수정을 안전하게 만드는 핵심입니다. 이게 없으면 YAML 필드 하나 잘못 놓은 것이 런타임에서야 드러나는 프리팹 파손으로 이어집니다. 이게 있으면 **AI 에이전트가 어떤 Unity 에셋이든 텍스트로 자신 있게 수정**할 수 있습니다 — 프리팹에 컴포넌트 추가, 씬 계층 구조 변경, 머티리얼 속성 조정 — 결과가 정상적으로 로드된다는 것을 보장하면서.
+
+### 정확한 UI, Scene, GameObject 명령어
+
+이 명령어들은 일회성 `exec` 코드 대신, 정확한 경로를 기반으로 결정적인 캡처와 구조화된 조회를 할 때 사용합니다.
+
+```bash
+unity-cli ui capture-canvas --path HUD/MainCanvas[0]
+unity-cli scene capture-object --path Units/BossRoot[0]
+unity-cli gameobject info --path HUD/MainCanvas[0]/Panel[1]
+unity-cli gameobject list --path HUD/MainCanvas[0] --depth 2
+unity-cli gameobject info --prefab Assets/Prefabs/UI/MainHUD.prefab --path Root/MainCanvas[0]
+```
+
+경로 규칙:
+
+- exact path만 허용
+- 같은 이름의 형제 오브젝트가 있으면 `[index]`가 필요
+- 여러 씬이 로드된 경우 `SceneName::Path` 형태가 필요
+- `gameobject info`, `gameobject list`는 `--prefab` 지원
 
 ### 프로파일러
 
@@ -353,6 +375,9 @@ unity-cli --project MyGame editor stop
 
 ```bash
 unity-cli editor --help
+unity-cli ui --help
+unity-cli scene --help
+unity-cli gameobject --help
 unity-cli exec --help
 unity-cli profiler --help
 ```
