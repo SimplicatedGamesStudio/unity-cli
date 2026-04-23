@@ -93,10 +93,7 @@ func Execute() error {
 	case "editor":
 		resp, err = editorCmd(subArgs, send, inst.Port)
 	case "test":
-		testSend := func(command string, params interface{}) (*client.CommandResponse, error) {
-			return client.Send(inst, command, params, 0)
-		}
-		resp, err = testCmd(subArgs, testSend, inst.Port)
+		resp, err = testCmd(subArgs, send, inst.Port, timeout)
 	case "ui":
 		resp, err = uiCmd(subArgs, send)
 	case "scene":
@@ -590,8 +587,7 @@ Options:
   --filter <name>               Filter by namespace, class, or full test name
                                 Must be the full path (e.g. MyNamespace.MyClass)
 
-EditMode tests hold the connection open and return results directly.
-PlayMode tests return immediately and poll a results file (domain reload safe).
+EditMode and PlayMode tests return immediately and poll a results file.
 
 Requires the Unity Test Framework package (com.unity.test-framework).
 

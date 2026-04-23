@@ -11,7 +11,7 @@ namespace UnityCliConnector.TestRunner
 {
     /// <summary>
     /// Survives domain reloads via [InitializeOnLoad].
-    /// Re-registers TestRunnerApi callbacks after PlayMode domain reload
+    /// Re-registers TestRunnerApi callbacks after domain reload
     /// so RunFinished still fires and results are written to file.
     /// </summary>
     [InitializeOnLoad]
@@ -68,15 +68,31 @@ namespace UnityCliConnector.TestRunner
             var passed  = new List<string>();
             var failed  = new List<string>();
             var skipped = new List<string>();
+            var progress = new RunTests.TestRunProgress(port, filter);
 
             var api = ScriptableObject.CreateInstance<TestRunnerApi>();
             var callbacks = new RunTests.TestCallbacks(
-                onResult: r => RunTests.CollectResult(r, passed, failed, skipped),
+                onRunStarted: tests =>
+                {
+                    progress.MarkRunStarted(tests);
+                    RunTests.WriteProgressFile(progress);
+                },
+                onTestStarted: test =>
+                {
+                    progress.MarkTestStarted(test);
+                    RunTests.WriteProgressFile(progress);
+                },
+                onResult: r =>
+                {
+                    RunTests.CollectResult(r, passed, failed, skipped);
+                    progress.MarkTestFinished(r);
+                    RunTests.WriteProgressFile(progress);
+                },
                 onFinished: _ =>
                 {
                     Object.DestroyImmediate(api);
                     ClearPending(port);
-                    RunTests.WriteResultsFile(port, passed, failed, skipped);
+                    RunTests.WriteResultsFile(port, passed, failed, skipped, progress);
                 }
             );
 
