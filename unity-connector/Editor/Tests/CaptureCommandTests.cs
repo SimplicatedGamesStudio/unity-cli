@@ -110,6 +110,58 @@ namespace UnityCliConnector.EditorTests
             }
         }
 
+        [Test]
+        public void CaptureUiCanvas_WorldSpaceCanvas_UsesSourceViewDirection()
+        {
+            var rootName = "WorldHUD_" + System.Guid.NewGuid().ToString("N");
+            var outputPath = "Screenshots/test-world-ui-capture.png";
+            var target = CreateCanvasRoot(rootName, RenderMode.WorldSpace);
+            var cameraObject = new GameObject("MainCamera");
+            Texture2D capturedTexture = null;
+            string capturedPath = null;
+            try
+            {
+                target.transform.position = Vector3.zero;
+                target.transform.rotation = Quaternion.Euler(0f, 45f, 0f);
+                target.GetComponent<RectTransform>().sizeDelta = new Vector2(4f, 4f);
+                AddFullscreenImage(target.transform, Color.red);
+
+                cameraObject.tag = "MainCamera";
+                var camera = cameraObject.AddComponent<Camera>();
+                camera.transform.position = new Vector3(0f, 0f, -10f);
+                camera.transform.LookAt(target.transform.position);
+
+                var canvas = target.GetComponent<Canvas>();
+                canvas.worldCamera = camera;
+
+                var result = (SuccessResponse)CaptureUiCanvas.HandleCommand(new JObject
+                {
+                    ["path"] = rootName,
+                    ["output_path"] = outputPath,
+                    ["width"] = 512,
+                    ["height"] = 512,
+                });
+
+                var data = JObject.FromObject(result.data);
+                capturedPath = data["path"]?.ToString();
+                Assert.That(File.Exists(capturedPath), Is.True);
+
+                capturedTexture = new Texture2D(2, 2, TextureFormat.RGB24, false);
+                capturedTexture.LoadImage(File.ReadAllBytes(capturedPath));
+                var pixel = capturedTexture.GetPixel(capturedTexture.width / 2, capturedTexture.height / 2);
+                Assert.That(pixel.r, Is.GreaterThan(0.5f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(target);
+                Object.DestroyImmediate(cameraObject);
+                if (capturedTexture)
+                    Object.DestroyImmediate(capturedTexture);
+                if (!string.IsNullOrEmpty(capturedPath) && File.Exists(capturedPath))
+                    File.Delete(capturedPath);
+            }
+        }
+
         static GameObject CreateCanvasRoot(string name, RenderMode renderMode)
         {
             var root = new GameObject(name, typeof(RectTransform), typeof(Canvas));

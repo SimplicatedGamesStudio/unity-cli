@@ -105,7 +105,7 @@ namespace UnityCliConnector.Tools
                 if (!referenceCamera)
                     return null;
 
-                PositionWorldSpaceCamera(camera, cloneCanvas.GetComponent<RectTransform>(), width, height);
+                PositionWorldSpaceCamera(camera, referenceCamera, cloneCanvas.GetComponent<RectTransform>(), width, height);
                 return camera;
             }
 
@@ -144,7 +144,7 @@ namespace UnityCliConnector.Tools
             }
         }
 
-        static void PositionWorldSpaceCamera(Camera camera, RectTransform rectTransform, int width, int height)
+        static void PositionWorldSpaceCamera(Camera camera, Camera referenceCamera, RectTransform rectTransform, int width, int height)
         {
             var corners = new Vector3[4];
             rectTransform.GetWorldCorners(corners);
@@ -154,10 +154,26 @@ namespace UnityCliConnector.Tools
                 bounds.Encapsulate(corners[index]);
 
             var aspect = (float)width / height;
+            var center = bounds.center;
+            var direction = center - referenceCamera.transform.position;
+            if (direction.sqrMagnitude <= Mathf.Epsilon)
+                direction = rectTransform.forward;
+            direction.Normalize();
+
             camera.orthographic = true;
-            camera.transform.position = bounds.center + Vector3.back * 10f;
-            camera.transform.rotation = Quaternion.identity;
-            camera.orthographicSize = Mathf.Max(bounds.extents.y, bounds.extents.x / aspect) + 0.1f;
+            camera.transform.position = center - direction * 10f;
+            camera.transform.rotation = Quaternion.LookRotation(direction, referenceCamera.transform.up);
+
+            var horizontalExtent = 0f;
+            var verticalExtent = 0f;
+            foreach (var corner in corners)
+            {
+                var offset = corner - center;
+                horizontalExtent = Mathf.Max(horizontalExtent, Mathf.Abs(Vector3.Dot(offset, camera.transform.right)));
+                verticalExtent = Mathf.Max(verticalExtent, Mathf.Abs(Vector3.Dot(offset, camera.transform.up)));
+            }
+
+            camera.orthographicSize = Mathf.Max(verticalExtent, horizontalExtent / aspect) + 0.1f;
         }
     }
 }
