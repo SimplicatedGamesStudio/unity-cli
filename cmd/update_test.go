@@ -5,6 +5,7 @@ import "testing"
 func TestFindAsset(t *testing.T) {
 	assets := []ghAsset{
 		{Name: "unity-cli-linux-amd64"},
+		{Name: "unity-cli-darwin-amd64"},
 		{Name: "unity-cli-darwin-arm64"},
 		{Name: "unity-cli-windows-amd64.exe"},
 	}

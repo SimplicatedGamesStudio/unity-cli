@@ -25,24 +25,28 @@ The entire CLI is ~800 lines of Go (plus ~300 lines of help text). The Unity-sid
 ### Linux / macOS
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/youngwoocho02/unity-cli/master/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/SimplicatedGamesStudio/unity-cli/master/install.sh | sh
 ```
+
+If the fork does not have release assets yet, the installer falls back to `go install` automatically.
 
 ### Windows (PowerShell)
 
 ```powershell
-irm https://raw.githubusercontent.com/youngwoocho02/unity-cli/master/install.ps1 | iex
+irm https://raw.githubusercontent.com/SimplicatedGamesStudio/unity-cli/master/install.ps1 | iex
 ```
+
+If the fork does not have release assets yet, the installer falls back to `go install` automatically.
 
 ### Other options
 
 ```bash
 # Go install (any platform with Go)
-go install github.com/youngwoocho02/unity-cli@latest
+go install github.com/SimplicatedGamesStudio/unity-cli@latest
 
 # Manual download (pick your platform)
 # Linux amd64 / Linux arm64 / macOS amd64 / macOS arm64 / Windows amd64
-curl -fsSL https://github.com/youngwoocho02/unity-cli/releases/latest/download/unity-cli-linux-amd64 -o unity-cli
+curl -fsSL https://github.com/SimplicatedGamesStudio/unity-cli/releases/latest/download/unity-cli-linux-amd64 -o unity-cli
 chmod +x unity-cli && sudo mv unity-cli /usr/local/bin/
 ```
 
@@ -63,12 +67,12 @@ unity-cli update --check
 Add the Unity Connector package via **Package Manager → Add package from git URL**:
 
 ```
-https://github.com/youngwoocho02/unity-cli.git?path=unity-connector
+https://github.com/SimplicatedGamesStudio/unity-cli.git?path=unity-connector
 ```
 
 Or add directly to `Packages/manifest.json`:
 ```json
-"com.youngwoocho02.unity-cli-connector": "https://github.com/youngwoocho02/unity-cli.git?path=unity-connector"
+"com.simplicatedgamesstudio.unity-cli-connector": "https://github.com/SimplicatedGamesStudio/unity-cli.git?path=unity-connector"
 ```
 
 To pin a specific version, append a tag to the URL (e.g. `#v0.2.21`).
@@ -473,7 +477,7 @@ unity-cli editor play
 Created by **DevBookOfArray**
 
 [![YouTube](https://img.shields.io/badge/YouTube-DevBookOfArray-red?logo=youtube&logoColor=white)](https://www.youtube.com/@DevBookOfArray)
-[![GitHub](https://img.shields.io/badge/GitHub-youngwoocho02-181717?logo=github)](https://github.com/youngwoocho02)
+[![GitHub](https://img.shields.io/badge/GitHub-SimplicatedGamesStudio-181717?logo=github)](https://github.com/SimplicatedGamesStudio)
 
 ## License
 

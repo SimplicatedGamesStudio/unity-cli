@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/youngwoocho02/unity-cli/internal/client"
+	"github.com/SimplicatedGamesStudio/unity-cli/internal/client"
 )
 
 func writeInstanceFile(t *testing.T, inst client.Instance) string {

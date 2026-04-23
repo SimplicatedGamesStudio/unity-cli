@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/youngwoocho02/unity-cli/internal/client"
+	"github.com/SimplicatedGamesStudio/unity-cli/internal/client"
 )
 
 func statusCmd(inst *client.Instance) error {

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/youngwoocho02/unity-cli/internal/client"
+	"github.com/SimplicatedGamesStudio/unity-cli/internal/client"
 )
 
 type suppressWriter struct {

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-REPO="youngwoocho02/unity-cli"
+REPO="SimplicatedGamesStudio/unity-cli"
 
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
 case "$OS" in
@@ -23,8 +23,17 @@ mkdir -p "$INSTALL_DIR"
 URL="https://github.com/${REPO}/releases/latest/download/unity-cli-${OS}-${ARCH}"
 
 echo "Downloading unity-cli for ${OS}/${ARCH}..."
-curl -fsSL "$URL" -o "$INSTALL_DIR/unity-cli"
-chmod +x "$INSTALL_DIR/unity-cli"
+if curl -fsSL "$URL" -o "$INSTALL_DIR/unity-cli"; then
+  chmod +x "$INSTALL_DIR/unity-cli"
+else
+  echo "Release binary not available for ${REPO}. Falling back to 'go install'."
+  if ! command -v go >/dev/null 2>&1; then
+    echo "Go is required for the fallback install path. Install Go or publish a release asset first."
+    exit 1
+  fi
+
+  GOBIN="$INSTALL_DIR" go install "github.com/${REPO}@latest"
+fi
 
 case ":$PATH:" in
   *":$INSTALL_DIR:"*) ;;
