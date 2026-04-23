@@ -97,6 +97,8 @@ func Execute() error {
 			return client.Send(inst, command, params, 0)
 		}
 		resp, err = testCmd(subArgs, testSend, inst.Port)
+	case "ui":
+		resp, err = uiCmd(subArgs, send)
 	case "exec":
 		subArgs = readStdinIfPiped(subArgs)
 		var params map[string]interface{}
