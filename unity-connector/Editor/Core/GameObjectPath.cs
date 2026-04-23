@@ -36,8 +36,14 @@ namespace UnityCliConnector
                 throw new ArgumentException("path is required", nameof(raw));
 
             var split = raw.Split(new[] { "::" }, StringSplitOptions.None);
+            if (split.Length > 2)
+                throw new ArgumentException("path may contain at most one scene qualifier", nameof(raw));
+
             var sceneName = split.Length == 2 ? split[0] : null;
             var hierarchy = split.Length == 2 ? split[1] : split[0];
+
+            if (split.Length == 2 && string.IsNullOrWhiteSpace(sceneName))
+                throw new ArgumentException("scene qualifier is required when using ::", nameof(raw));
 
             var segments = new List<Segment>();
             foreach (var part in hierarchy.Split('/'))

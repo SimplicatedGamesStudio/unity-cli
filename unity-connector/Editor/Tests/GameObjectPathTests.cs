@@ -21,5 +21,17 @@ namespace UnityCliConnector.EditorTests
             var parsed = GameObjectPath.Parse("HUD/MainCanvas");
             Assert.That(parsed.Segments[1].HasExplicitIndex, Is.False);
         }
+
+        [Test]
+        public void Parse_PathWithMultipleSceneDelimiters_ThrowsArgumentException()
+        {
+            Assert.Throws<System.ArgumentException>(() => GameObjectPath.Parse("SceneA::HUD::Canvas"));
+        }
+
+        [Test]
+        public void Parse_PathWithEmptySceneQualifier_ThrowsArgumentException()
+        {
+            Assert.Throws<System.ArgumentException>(() => GameObjectPath.Parse("::HUD/MainCanvas"));
+        }
     }
 }
