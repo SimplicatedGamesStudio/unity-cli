@@ -6,12 +6,12 @@ namespace UnityCliConnector
 {
     public static class GameObjectInfoSerializer
     {
-        public static object SerializeInfo(GameObject target, string resolvedPath, string source)
+        public static object SerializeInfo(GameObject target, string source, bool includeSceneName)
         {
             var data = new System.Collections.Generic.Dictionary<string, object>
             {
                 ["name"] = target.name,
-                ["resolvedPath"] = resolvedPath,
+                ["resolvedPath"] = BuildResolvedPath(target, includeSceneName),
                 ["source"] = source,
                 ["activeSelf"] = target.activeSelf,
                 ["layer"] = target.layer,
@@ -24,7 +24,7 @@ namespace UnityCliConnector
                     ["localRotation"] = SerializeVector3(target.transform.localRotation.eulerAngles),
                     ["localScale"] = SerializeVector3(target.transform.localScale),
                 },
-                ["prefab"] = PrefabUtility.GetPrefabInstanceStatus(target).ToString(),
+                ["prefab"] = GetPrefabStatus(target),
             };
 
             if (target.transform is RectTransform rectTransform)
@@ -47,6 +47,41 @@ namespace UnityCliConnector
                 .Where(component => component != null)
                 .Select(component => component.GetType().Name)
                 .ToArray();
+        }
+
+        internal static string BuildResolvedPath(GameObject target, bool includeSceneName)
+        {
+            var segments = new System.Collections.Generic.List<string>();
+            for (var current = target.transform; current != null; current = current.parent)
+                segments.Insert(0, BuildSegment(current));
+
+            var path = string.Join("/", segments);
+            return includeSceneName ? target.scene.name + "::" + path : path;
+        }
+
+        static string BuildSegment(Transform target)
+        {
+            var siblings = GetSiblings(target).Where(candidate => candidate.name == target.name).ToList();
+            if (siblings.Count <= 1)
+                return target.name;
+
+            return target.name + "[" + siblings.IndexOf(target) + "]";
+        }
+
+        static System.Collections.Generic.IEnumerable<Transform> GetSiblings(Transform target)
+        {
+            if (target.parent != null)
+                return target.parent.Cast<Transform>();
+
+            return target.gameObject.scene.GetRootGameObjects().Select(root => root.transform);
+        }
+
+        static string GetPrefabStatus(GameObject target)
+        {
+            if (PrefabUtility.IsPartOfPrefabContents(target))
+                return "PrefabContents";
+
+            return PrefabUtility.GetPrefabInstanceStatus(target).ToString();
         }
 
         private static object SerializeVector2(Vector2 value)

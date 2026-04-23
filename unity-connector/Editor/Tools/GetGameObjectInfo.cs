@@ -22,7 +22,7 @@ namespace UnityCliConnector.Tools
                 var prefab = p.Get("prefab");
                 var target = ResolveTarget(prefab, pathResult.Value, ref prefabRoot);
                 var source = string.IsNullOrEmpty(prefab) ? "scene" : "prefab";
-                var data = GameObjectInfoSerializer.SerializeInfo(target, pathResult.Value, source);
+                var data = GameObjectInfoSerializer.SerializeInfo(target, source, string.IsNullOrEmpty(prefab));
 
                 return new SuccessResponse("GameObject info", data);
             }
