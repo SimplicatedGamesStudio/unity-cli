@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -36,14 +35,12 @@ namespace UnityCliConnector.Tools
             var view = p.Get("view", "scene").ToLowerInvariant();
             var width = p.GetInt("width", DefaultWidth).Value;
             var height = p.GetInt("height", DefaultHeight).Value;
-            var outputPath = ResolveOutputPath(p.Get("output_path"));
+            var outputPath = CaptureUtility.ResolveOutputPath(
+                p.Get("output_path", "Screenshots/screenshot.png"),
+                "screenshot");
 
             try
             {
-                var dir = Path.GetDirectoryName(outputPath);
-                if (!string.IsNullOrEmpty(dir))
-                    Directory.CreateDirectory(dir);
-
                 switch (view)
                 {
                     case "scene":
@@ -60,18 +57,6 @@ namespace UnityCliConnector.Tools
             }
         }
 
-        private static string ResolveOutputPath(string userPath)
-        {
-            if (string.IsNullOrEmpty(userPath))
-                userPath = "Screenshots/screenshot.png";
-
-            if (Path.IsPathRooted(userPath))
-                return Path.GetFullPath(userPath);
-
-            var projectRoot = Path.GetDirectoryName(Application.dataPath);
-            return Path.GetFullPath(Path.Combine(projectRoot, userPath));
-        }
-
         private static object CaptureSceneView(int width, int height, string outputPath)
         {
             var sceneView = SceneView.lastActiveSceneView;
@@ -82,7 +67,8 @@ namespace UnityCliConnector.Tools
             if (!camera)
                 return new ErrorResponse("SceneView camera is null.");
 
-            return CaptureCamera(camera, width, height, outputPath);
+            return CaptureUtility.CaptureCamera(camera, width, height, outputPath,
+                new { path = outputPath, width, height });
         }
 
         private static object CaptureGameView(int width, int height, string outputPath)
@@ -99,38 +85,8 @@ namespace UnityCliConnector.Tools
                     return new ErrorResponse("No camera found in scene.");
             }
 
-            return CaptureCamera(camera, width, height, outputPath);
-        }
-
-        private static object CaptureCamera(Camera camera, int width, int height, string outputPath)
-        {
-            var previousRT = camera.targetTexture;
-            RenderTexture rt = null;
-            Texture2D tex = null;
-
-            try
-            {
-                rt = new RenderTexture(width, height, 24);
-                camera.targetTexture = rt;
-                camera.Render();
-
-                RenderTexture.active = rt;
-                tex = new Texture2D(width, height, TextureFormat.RGB24, false);
-                tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-                tex.Apply();
-
-                File.WriteAllBytes(outputPath, tex.EncodeToPNG());
-
-                return new SuccessResponse($"Screenshot saved to {outputPath}",
-                    new { path = outputPath, width, height });
-            }
-            finally
-            {
-                camera.targetTexture = previousRT;
-                RenderTexture.active = null;
-                if (rt) UnityEngine.Object.DestroyImmediate(rt);
-                if (tex) UnityEngine.Object.DestroyImmediate(tex);
-            }
+            return CaptureUtility.CaptureCamera(camera, width, height, outputPath,
+                new { path = outputPath, width, height });
         }
     }
 }
