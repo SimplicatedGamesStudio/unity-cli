@@ -38,7 +38,7 @@ namespace UnityCliConnector
                 };
             }
 
-            if (PrefabUtility.IsPartOfPrefabContents(target))
+            if (source == "prefab")
                 data["prefabContext"] = "PrefabContents";
 
             return data;
