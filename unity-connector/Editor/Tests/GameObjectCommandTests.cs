@@ -83,7 +83,7 @@ namespace UnityCliConnector.EditorTests
                 var data = JObject.FromObject(response.data);
                 Assert.That(data["resolvedPath"]?.ToString(), Is.EqualTo(rootName));
                 Assert.That(data["source"]?.ToString(), Is.EqualTo("prefab"));
-                Assert.That(data["prefab"]?.ToString(), Is.EqualTo("PrefabContents"));
+                Assert.That(data["prefabContext"]?.ToString(), Is.EqualTo("PrefabContents"));
             }
             finally
             {

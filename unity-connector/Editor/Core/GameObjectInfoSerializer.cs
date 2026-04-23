@@ -24,7 +24,7 @@ namespace UnityCliConnector
                     ["localRotation"] = SerializeVector3(target.transform.localRotation.eulerAngles),
                     ["localScale"] = SerializeVector3(target.transform.localScale),
                 },
-                ["prefab"] = GetPrefabStatus(target),
+                ["prefab"] = PrefabUtility.GetPrefabInstanceStatus(target).ToString(),
             };
 
             if (target.transform is RectTransform rectTransform)
@@ -37,6 +37,9 @@ namespace UnityCliConnector
                     ["anchorMax"] = SerializeVector2(rectTransform.anchorMax),
                 };
             }
+
+            if (PrefabUtility.IsPartOfPrefabContents(target))
+                data["prefabContext"] = "PrefabContents";
 
             return data;
         }
@@ -74,14 +77,6 @@ namespace UnityCliConnector
                 return target.parent.Cast<Transform>();
 
             return target.gameObject.scene.GetRootGameObjects().Select(root => root.transform);
-        }
-
-        static string GetPrefabStatus(GameObject target)
-        {
-            if (PrefabUtility.IsPartOfPrefabContents(target))
-                return "PrefabContents";
-
-            return PrefabUtility.GetPrefabInstanceStatus(target).ToString();
         }
 
         private static object SerializeVector2(Vector2 value)
