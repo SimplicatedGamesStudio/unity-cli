@@ -36,6 +36,8 @@ namespace UnityCliConnector
         public static GameObject ResolvePrefabObject(GameObject prefabRoot, string rawPath)
         {
             var path = GameObjectPath.Parse(rawPath);
+            if (!string.IsNullOrEmpty(path.SceneName))
+                throw new InvalidOperationException("scene-qualified path is not valid for prefab resolution");
             return ResolveParsedPath(path, new[] { prefabRoot });
         }
 
