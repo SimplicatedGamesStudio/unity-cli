@@ -11,7 +11,7 @@ namespace UnityCliConnector
             var camera = cameraObject.AddComponent<Camera>();
             camera.enabled = false;
             camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = Color.black;
+            camera.backgroundColor = new Color(0f, 0f, 0f, 0f);
             camera.aspect = (float)width / height;
             camera.nearClipPlane = 0.01f;
             camera.farClipPlane = 1000f;
@@ -29,7 +29,6 @@ namespace UnityCliConnector
             cloneCanvas.renderMode = RenderMode.ScreenSpaceCamera;
             cloneCanvas.worldCamera = camera;
             cloneCanvas.planeDistance = 1f;
-            camera.backgroundColor = new Color(0f, 0f, 0f, 0f);
             camera.transform.position = new Vector3(0f, 0f, -10f);
             camera.transform.rotation = Quaternion.identity;
             return camera;

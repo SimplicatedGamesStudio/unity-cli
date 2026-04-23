@@ -264,6 +264,70 @@ namespace UnityCliConnector.EditorTests
         }
 
         [Test]
+        public void CaptureSceneObject_CapturesWorldSpaceUiSubtree()
+        {
+            var rootName = "WorldCanvasRoot_" + System.Guid.NewGuid().ToString("N");
+            var outputPath = "Screenshots/test-scene-capture-worldspace-ui-subtree.png";
+            var canvasRoot = CreateCanvasRoot(rootName, RenderMode.WorldSpace);
+            var target = new GameObject("Target", typeof(RectTransform));
+            var targetImage = new GameObject("Chip", typeof(RectTransform), typeof(Image));
+            var cameraObject = new GameObject("MainCamera");
+            Texture2D capturedTexture = null;
+            string capturedPath = null;
+
+            try
+            {
+                canvasRoot.transform.position = Vector3.zero;
+                canvasRoot.GetComponent<RectTransform>().sizeDelta = new Vector2(4f, 4f);
+                AddFullscreenImage(canvasRoot.transform, Color.green);
+
+                target.transform.SetParent(canvasRoot.transform, false);
+                targetImage.transform.SetParent(target.transform, false);
+
+                var rectTransform = targetImage.GetComponent<RectTransform>();
+                rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+                rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+                rectTransform.pivot = new Vector2(0.5f, 0.5f);
+                rectTransform.sizeDelta = new Vector2(1f, 1f);
+                rectTransform.anchoredPosition = new Vector2(-1.25f, 0.5f);
+                targetImage.GetComponent<Image>().color = Color.red;
+
+                cameraObject.tag = "MainCamera";
+                var camera = cameraObject.AddComponent<Camera>();
+                camera.transform.position = new Vector3(0f, 0f, -10f);
+                camera.transform.LookAt(canvasRoot.transform.position);
+                canvasRoot.GetComponent<Canvas>().worldCamera = camera;
+
+                var result = (SuccessResponse)CaptureSceneObject.HandleCommand(new JObject
+                {
+                    ["path"] = rootName + "/Target",
+                    ["output_path"] = outputPath,
+                    ["width"] = 512,
+                    ["height"] = 512,
+                });
+
+                var data = JObject.FromObject(result.data);
+                capturedPath = data["path"]?.ToString();
+                Assert.That(File.Exists(capturedPath), Is.True);
+
+                capturedTexture = new Texture2D(2, 2, TextureFormat.RGB24, false);
+                capturedTexture.LoadImage(File.ReadAllBytes(capturedPath));
+                var pixel = capturedTexture.GetPixel(capturedTexture.width / 2, capturedTexture.height / 2);
+                Assert.That(pixel.r, Is.GreaterThan(0.5f));
+                Assert.That(pixel.g, Is.LessThan(0.25f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(canvasRoot);
+                Object.DestroyImmediate(cameraObject);
+                if (capturedTexture)
+                    Object.DestroyImmediate(capturedTexture);
+                if (!string.IsNullOrEmpty(capturedPath) && File.Exists(capturedPath))
+                    File.Delete(capturedPath);
+            }
+        }
+
+        [Test]
         public void CaptureSceneObject_UsesFramingCameraEvenWhenMainCameraFacesAway()
         {
             var rootName = "SceneRoot_" + System.Guid.NewGuid().ToString("N");
